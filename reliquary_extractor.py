@@ -274,7 +274,7 @@ def main():
     sets = extractor.extract_sets()
     
     # 保存到输出目录
-    output_dir = get_data_path('../genshin_extractors/output')
+    output_dir = get_data_path('../genshin-extractors/output')
     output_dir.mkdir(exist_ok=True)
     
     # 保存套装组织的数据

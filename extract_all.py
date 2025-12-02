@@ -38,7 +38,7 @@ def main():
     logger = logging.getLogger(__name__)
     
     # 创建输出目录
-    output_dir = get_data_path('../genshin_extractors/output')
+    output_dir = get_data_path('../genshin-extractors/output')
     output_dir.mkdir(exist_ok=True, parents=True)
     logger.info(f"输出目录: {output_dir}")
     

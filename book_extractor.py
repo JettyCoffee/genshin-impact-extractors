@@ -467,7 +467,7 @@ def main():
     extractor = BookExtractor(language='CHS')
     
     # 保存到输出目录
-    output_dir = get_data_path('../genshin_extractors/output')
+    output_dir = get_data_path('../genshin-extractors/output')
     output_dir.mkdir(exist_ok=True)
     
     # 1. 提取普通书籍

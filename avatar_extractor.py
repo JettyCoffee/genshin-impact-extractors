@@ -298,7 +298,7 @@ def main():
     avatars = extractor.extract_all(skip_test_avatars=True)
     
     # 保存到输出目录
-    output_dir = get_data_path('../genshin_extractors/output')
+    output_dir = get_data_path('../genshin-extractors/output')
     output_dir.mkdir(exist_ok=True)
     output_file = output_dir / 'avatars.json'
     
