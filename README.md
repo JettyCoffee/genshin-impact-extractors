@@ -8,11 +8,11 @@
 
 | 提取器 | 描述 | 输出 |
 |--------|------|------|
-| `weapon_extractor.py` | 武器信息及故事 | `weapons.json` |
-| `reliquary_extractor.py` | 圣遗物套装及故事 | `reliquary_sets.json` |
-| `book_extractor.py` | 书籍、信件等文档 | `books.json`, `book_series.json` |
-| `avatar_extractor.py` | 角色信息、故事、语音 | `avatars.json` |
-| `quest_dialogue_extractor.py` | 任务对话（按类型分类） | `quests/` 目录 |
+| `WeaponExtractor` | 武器信息及故事 | `weapons.json` |
+| `ReliquaryExtractor` | 圣遗物套装及故事 | `reliquary_sets.json` |
+| `BookExtractor` | 书籍、信件等文档 | `books.json`, `book_series.json` |
+| `AvatarExtractor` | 角色信息、故事、语音 | `avatars.json` |
+| `QuestDialogueExtractor` | 任务对话（按类型分类） | `quests/` 目录 |
 
 ## 🚀 快速开始
 
@@ -20,6 +20,17 @@
 
 - Python 3.8+
 - [AnimeGameData](https://github.com/Dimbreath/AnimeGameData) 数据目录
+
+### 安装
+
+```bash
+# 克隆项目
+git clone https://github.com/JettyCoffee/genshin-impact-extractors.git
+cd genshin-extractors
+
+# 安装依赖（可选）
+pip install -e .
+```
 
 ### 目录结构
 
@@ -31,49 +42,123 @@ project_root/
 │   ├── Readable/
 │   └── TextMap/
 └── genshin-extractors/      # 本项目
-    ├── extract_all.py
-    ├── utils.py
-    ├── weapon_extractor.py
-    ├── reliquary_extractor.py
-    ├── book_extractor.py
-    ├── avatar_extractor.py
-    ├── quest_dialogue_extractor.py
-    └── output/              # 提取结果输出目录
+    ├── src/                 # 源代码目录
+    │   ├── core/            # 核心工具模块
+    │   │   ├── config.py    # 配置和路径管理
+    │   │   ├── io.py        # JSON 读写
+    │   │   ├── text_parser.py    # 文本映射解析
+    │   │   └── story_extractor.py # 故事内容提取
+    │   ├── models/          # 数据模型和常量
+    │   │   ├── constants.py # 常量定义
+    │   │   └── field_maps.py # 加密字段映射
+    │   ├── extractors/      # 提取器模块
+    │   │   ├── base.py      # 提取器基类
+    │   │   ├── avatar/      # 角色提取器
+    │   │   ├── book/        # 书籍提取器
+    │   │   ├── weapon/      # 武器提取器
+    │   │   ├── reliquary/   # 圣遗物提取器
+    │   │   └── quest/       # 任务对话提取器
+    │   └── cli/             # 命令行接口
+    │       └── main.py      # CLI 入口
+    ├── output/              # 提取结果输出目录
+    ├── pyproject.toml       # 项目配置
+    └── README.md
 ```
 
 ### 运行方式
 
-#### 方式一：提取全部数据（推荐）
+#### 方式一：命令行工具（推荐）
 
 ```bash
-cd genshin-extractors
-python extract_all.py
+# 提取全部数据
+genshin-extract --type all
+
+# 仅提取武器数据
+genshin-extract --type weapon
+
+# 仅提取角色数据
+genshin-extract --type avatar
+
+# 指定语言和输出目录
+genshin-extract --type all --language EN --output ./my_output
 ```
 
-这将依次运行所有提取器并生成汇总报告。
+#### 方式二：Python 代码调用
 
-#### 方式二：单独运行提取器
+```python
+from src import AvatarExtractor, WeaponExtractor
+
+# 创建提取器
+extractor = AvatarExtractor(language='CHS')
+
+# 提取所有数据
+avatars = extractor.extract_all()
+
+# 保存到文件
+extractor.save_to_file('avatars.json', avatars)
+```
+
+#### 方式三：直接运行旧脚本
 
 ```bash
-# 提取武器数据
+# 仍然保留了兼容的独立脚本
+python extract_all.py
 python weapon_extractor.py
-
-# 提取圣遗物数据
-python reliquary_extractor.py
-
-# 提取书籍数据
-python book_extractor.py
-
-# 提取角色数据
 python avatar_extractor.py
+```
 
-# 提取任务对话
-python quest_dialogue_extractor.py
+## 📦 项目架构
+
+### 核心模块 (src/core/)
+
+| 模块 | 功能 |
+|------|------|
+| `config.py` | 路径配置、日志设置 |
+| `io.py` | JSON 文件读写 |
+| `text_parser.py` | 文本哈希到文本的映射解析 |
+| `story_extractor.py` | 故事内容提取（从 Readable 目录） |
+
+### 数据模型 (src/models/)
+
+| 模块 | 功能 |
+|------|------|
+| `constants.py` | 身体类型、武器类型、任务类型等常量映射 |
+| `field_maps.py` | 游戏数据加密字段名到原始字段名的映射 |
+
+### 提取器模块 (src/extractors/)
+
+每个提取器都被拆分为多个子模块，便于维护：
+
+```
+extractors/
+├── base.py              # 提取器基类
+├── avatar/              # 角色提取器
+│   ├── data_loader.py   # 数据加载
+│   ├── info_extractor.py    # 基础信息提取
+│   ├── story_extractor.py   # 故事提取
+│   └── voice_extractor.py   # 语音提取
+├── book/                # 书籍提取器
+│   ├── data_loader.py
+│   ├── info_extractor.py
+│   ├── series_extractor.py  # 系列组织
+│   └── type_checker.py      # 类型判断
+├── weapon/              # 武器提取器
+│   ├── data_loader.py
+│   └── info_extractor.py
+├── reliquary/           # 圣遗物提取器
+│   ├── data_loader.py
+│   ├── info_extractor.py
+│   └── set_extractor.py     # 套装组织
+└── quest/               # 任务对话提取器
+    ├── data_loader.py
+    ├── dialog_builder.py    # 对话树构建
+    ├── quest_processor.py   # 任务处理
+    └── role_resolver.py     # 角色名解析
 ```
 
 ## 📦 提取器详解
 
-### 1. 武器提取器 (`weapon_extractor.py`)
+### 1. 武器提取器 (WeaponExtractor)
 
 提取所有武器的基础信息和故事文本。
 
@@ -95,9 +180,9 @@ python quest_dialogue_extractor.py
 }
 ```
 
-### 2. 圣遗物提取器 (`reliquary_extractor.py`)
+### 2. 圣遗物提取器 (ReliquaryExtractor)
 
-按套装提取圣遗物信息，每个套装包含5个部位的故事。
+按套装提取圣遗物信息，每个套装包含 5 个部位的故事。
 
 **提取内容：**
 - 套装名称、套装效果
@@ -108,7 +193,7 @@ python quest_dialogue_extractor.py
 ```json
 {
   "set_id": 15001,
-  "name": "角斗士的终幕礼",
+  "set_name": "角斗士的终幕礼",
   "pieces": [
     {
       "equip_type": "生之花",
@@ -120,22 +205,24 @@ python quest_dialogue_extractor.py
 }
 ```
 
-### 3. 书籍提取器 (`book_extractor.py`)
+### 3. 书籍提取器 (BookExtractor)
 
 提取游戏中的纯书籍内容（不包括武器/圣遗物故事）。
 
 **提取内容：**
 - 书籍、信件、分页文档
 - 书籍系列组织
-- 内容分类
+- 皮肤、风之翼文档
 
 **文档类型：**
-- `Book` - 书籍
-- `Letter` - 信件
-- `Paged` - 分页文档
-- `Video` - 视频
+| 类型 | 说明 |
+|------|------|
+| `Book` | 书籍 |
+| `Letter` | 信件 |
+| `Paged` | 分页文档 |
+| `Video` | 视频 |
 
-### 4. 角色提取器 (`avatar_extractor.py`)
+### 4. 角色提取器 (AvatarExtractor)
 
 提取可玩角色的完整信息。
 
@@ -150,20 +237,17 @@ python quest_dialogue_extractor.py
 {
   "id": 10000002,
   "name": "神里绫华",
-  "element": "冰",
   "weapon_type": "单手剑",
-  "quality": 5,
   "profile": {
-    "birthday": "9月28日",
-    "constellation": "簪缨座",
-    "affiliation": "社奉行"
+    "birthday": "9/28",
+    "constellation": "簪缨座"
   },
   "stories": [...],
-  "voices": [...]
+  "voice_overs": [...]
 }
 ```
 
-### 5. 任务对话提取器 (`quest_dialogue_extractor.py`)
+### 5. 任务对话提取器 (QuestDialogueExtractor)
 
 从 BinOutput 提取完整的任务对话树。
 
@@ -189,50 +273,16 @@ output/quests/
 ├── 传说任务/
 ├── 世界任务/
 ├── 活动任务/
-├── 委托任务/
-└── extraction_stats.json
+└── 委托任务/
 ```
 
-**对话树结构：**
-```json
-{
-  "id": 306,
-  "title": "昔日的风",
-  "type": "AQ",
-  "type_name": "魔神任务",
-  "talks": [
-    {
-      "talk_id": 30610,
-      "dialogues": [
-        {
-          "id": 3061001,
-          "role": "安柏",
-          "text": "呼…真累人。",
-          "next": [...]
-        }
-      ]
-    }
-  ]
-}
-```
-
-## 🛠️ 核心模块
-
-### utils.py
-
-提供公共功能：
-
-- `TextMapParser` - 文本哈希到文本的映射解析
-- `StoryContentExtractor` - 故事内容提取（从 Readable 目录）
-- `load_json()` / `save_json()` - JSON 读写
-- `get_data_path()` - 数据路径解析
-- `setup_logger()` - 日志配置
-
-### 多语言支持
+## 🌍 多语言支持
 
 所有提取器支持多语言，通过 `language` 参数指定：
 
 ```python
+from src import WeaponExtractor
+
 # 中文（默认）
 extractor = WeaponExtractor(language='CHS')
 
@@ -243,41 +293,13 @@ extractor = WeaponExtractor(language='EN')
 extractor = WeaponExtractor(language='JP')
 ```
 
-## 📊 输出示例
-
-运行 `extract_all.py` 后的输出：
-
-```
-================================================================================
-原神游戏数据提取工具
-================================================================================
-
-1. 提取武器数据...
-✓ 武器提取完成:
-  - 总数: 150
-  - 有故事: 85
-
-2. 提取圣遗物数据...
-✓ 圣遗物提取完成:
-  - 总套装数: 45
-  - 有完整故事的套装: 40
-
-3. 提取书籍数据...
-✓ 书籍提取完成:
-  - 总数: 500
-  - 有内容: 480
-  - 系列数: 50
-
-4. 提取角色数据...
-✓ 角色提取完成:
-  - 总数: 80
-  - 有故事: 78
-  - 有语音: 78
-
-================================================================================
-✓ 所有提取任务完成！
-================================================================================
-```
+支持的语言代码：
+- `CHS` - 简体中文
+- `CHT` - 繁体中文
+- `EN` - 英语
+- `JP` - 日语
+- `KR` - 韩语
+- 以及 DE, FR, ES, PT, RU, ID, TH, VI, TR, IT
 
 ## 📁 输出文件说明
 
@@ -287,6 +309,8 @@ extractor = WeaponExtractor(language='JP')
 | `reliquary_sets.json` | 圣遗物套装数据 |
 | `books.json` | 所有书籍数据 |
 | `book_series.json` | 书籍系列组织 |
+| `costumes.json` | 皮肤文档 |
+| `windgliders.json` | 风之翼文档 |
 | `avatars.json` | 所有角色数据 |
 | `quests/` | 任务对话（按类型/章节组织） |
 | `extraction_summary.json` | 提取汇总统计 |
@@ -295,16 +319,20 @@ extractor = WeaponExtractor(language='JP')
 
 ### 添加新提取器
 
-1. 创建新的提取器文件（如 `xxx_extractor.py`）
-2. 继承或使用 `utils.py` 中的工具类
-3. 实现 `extract_all()` 方法和 `save_to_file()` 方法
-4. 在 `extract_all.py` 中集成
+1. 在 `src/extractors/` 下创建新目录
+2. 创建以下文件：
+   - `__init__.py` - 导出主类
+   - `data_loader.py` - 数据加载逻辑
+   - `info_extractor.py` - 信息提取逻辑
+   - `extractor.py` - 主提取器类（继承 `BaseExtractor`）
+3. 在 `src/extractors/__init__.py` 中导出新提取器
+4. 在 `src/cli/main.py` 中添加命令行支持
 
 ### 数据结构参考
 
 游戏数据主要来源：
-- `ExcelBinOutput/` - 配置表（JSON格式）
-- `BinOutput/` - 二进制配置（已解析为JSON）
+- `ExcelBinOutput/` - 配置表（JSON 格式）
+- `BinOutput/` - 二进制配置（已解析为 JSON）
 - `TextMap/` - 多语言文本映射
 - `Readable/` - 可读文本内容
 

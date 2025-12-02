@@ -2,34 +2,27 @@
 Genshin Impact 数据提取器
 基于 ID 映射规律分析的新版本提取器
 
-使用方法:
-    from genshin_extractors import AvatarExtractor, WeaponExtractor
-    
-    # 创建提取器
-    extractor = AvatarExtractor(language='CHS')
-    
-    # 提取数据
-    avatars = extractor.extract_all()
-    
-    # 保存到文件
-    extractor.save_to_file('avatars.json', avatars)
-
-命令行使用:
-    genshin-extract --type all --language CHS
+包结构:
+- core: 核心工具模块（配置、IO、文本解析等）
+- extractors: 各类数据提取器
+- models: 常量和数据模型定义
+- cli: 命令行接口
 """
 
 __version__ = "1.0.0"
 __author__ = "Genshin Extractors Team"
 
-# 从 src 包导入主要类
-from .src import (
-    # 提取器
+# 导出主要提取器类，方便外部使用
+from .extractors import (
     AvatarExtractor,
     BookExtractor,
     WeaponExtractor,
     ReliquaryExtractor,
     QuestDialogueExtractor,
-    # 核心工具
+)
+
+# 导出核心工具
+from .core import (
     TextMapParser,
     StoryContentExtractor,
     load_json,
@@ -39,9 +32,6 @@ from .src import (
 )
 
 __all__ = [
-    # 版本信息
-    '__version__',
-    '__author__',
     # 提取器
     'AvatarExtractor',
     'BookExtractor',
